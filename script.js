@@ -1,142 +1,212 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>User Management Portal</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+let appState = {
+    currentPage: 'portal',
+    isLoggedIn: false,
+    adminUsername: '',
+    users: [
+        { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com', password: '****', isActive: true },
+        { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', password: '****', isActive: true },
+        { id: 3, firstName: 'Mike', lastName: 'Johnson', email: 'mike@example.com', password: '****', isActive: false },
+        { id: 4, firstName: 'Sarah', lastName: 'Williams', email: 'sarah@example.com', password: '****', isActive: true },
+        { id: 5, firstName: 'Tom', lastName: 'Brown', email: 'tom@example.com', password: '****', isActive: true },
+    ],
+    nextUserId: 6
+};
 
-    <!-- PORTAL PAGE -->
-    <div class="portal-page" id="portalPage">
-        <div class="portal-container">
-            <div class="portal-header">
-                <h1>User Management Portal</h1>
-                <p>Login admin and User</p>
-            </div>
+// ================= SWITCH TABS =================
+function switchTab(tab) {
+    const adminForm = document.getElementById('adminForm');
+    const registerForm = document.getElementById('registerForm');
+    const adminBtn = document.querySelectorAll('.tab-btn')[0];
+    const registerBtn = document.querySelectorAll('.tab-btn')[1];
 
-            <!-- TAB BUTTONS -->
-            <div class="tab-buttons">
-                <button class="tab-btn active" onclick="switchTab('admin')">🔐 Admin Login</button>
-                <button class="tab-btn" onclick="switchTab('register')">📋 User Login</button>
-            </div>
+    adminForm.classList.remove('active');
+    registerForm.classList.remove('active');
+    adminBtn.classList.remove('active');
+    registerBtn.classList.remove('active');
 
-            <!-- ADMIN LOGIN FORM -->
-            <div class="form-container active" id="adminForm">
-                <form class="form-group" onsubmit="return false;">
-                    <label>
-                        Username
-                        <input type="text" id="adminUsername" placeholder="admin" />
-                    </label>
-                    <label>
-                        Password
-                        <input type="password" id="adminPassword" placeholder="Admin@123" />
-                    </label>
-                    <button type="button" onclick="handleAdminLogin()">Login</button>
-                    <div class="message" id="adminMessage"></div>
-                </form>
-                <div class="demo-text">📝 Demo: admin / Admin@123</div>
-            </div>
+    if (tab === 'admin') {
+        adminForm.classList.add('active');
+        adminBtn.classList.add('active');
+        document.getElementById('adminUsername').focus();
+    } else {
+        registerForm.classList.add('active');
+        registerBtn.classList.add('active');
+        document.getElementById('regFirstName').focus();
+    }
 
-            <!-- USER REGISTRATION FORM -->
-            <div class="form-container" id="registerForm">
-                <form class="form-group" onsubmit="return false;">
-                    <label>
-                        First Name
-                        <input type="text" id="regFirstName" placeholder="Enter first name" />
-                    </label>
-                    <label>
-                        Last Name
-                        <input type="text" id="regLastName" placeholder="Enter last name" />
-                    </label>
-                    <label>
-                        Email
-                        <input type="email" id="regEmail" placeholder="Enter email" />
-                    </label>
-                    <label>
-                        Password
-                        <input type="password" id="regPassword" placeholder="Enter password" />
-                    </label>
-                    <button type="button" onclick="handleUserLogin()">Login</button>
-                    <div class="message" id="regMessage"></div>
-                </form>
-            </div>
-        </div>
-    </div>
+    document.getElementById('adminMessage').textContent = '';
+    document.getElementById('regMessage').textContent = '';
+    document.getElementById('errorMessage').textContent = '';
+}
 
-    <!-- Admin LOGIN PAGE -->
-    <div class="success-page hidden" id="successPage">
-        <div class="success-container">
-            <div class="success-icon">✓</div>
-            <h1>Login Successful!</h1>
-            <p>Welcome back, <span class="success-username" id="successUsername"></span></p>
-            <button class="btn-primary" onclick="goToDashboard()">📊 Go to Dashboard</button>
-        </div>
-    </div>
+// =================== PAGE NAVIGATION ===================
+function showPage(page) {
+    document.getElementById('portalPage').classList.add('hidden');
+    document.getElementById('successPage').classList.add('hidden');
+    document.getElementById('regSuccessPage').classList.add('hidden');
+    document.getElementById('dashboardPage').classList.add('hidden');
 
-    <!-- USER LOGIN SUCCESS PAGE -->
-    <div class="success-page hidden" id="regSuccessPage">
-        <div class="success-container">
-            <div class="success-icon">✓</div>
-            <h1>Login Successful!</h1>
-            <p>Your details have been recorded. An administrator will review your status shortly.</p>
-             <button class="btn-secondary btn-logout" onclick="handleLogout()">🚪 Logout</button>
-        </div>
-    </div>
+    document.getElementById('adminMessage').textContent = '';
+    document.getElementById('regMessage').textContent = '';
+    document.getElementById('errorMessage').textContent = '';
+    document.getElementById('successNotification').textContent = '';
 
-    <!-- DASHBOARD PAGE -->
-    <div class="dashboard-page hidden" id="dashboardPage">
-        <div class="dashboard-container">
+    if (page === 'portal') {
+        document.getElementById('portalPage').classList.remove('hidden');
+        switchTab('admin');
+    } else if (page === 'success') {
+        document.getElementById('successPage').classList.remove('hidden');
+    } else if (page === 'regSuccess') {
+        document.getElementById('regSuccessPage').classList.remove('hidden');
+        // ❌ AUTO REDIRECT REMOVED (as per your request)
+    } else if (page === 'dashboard') {
+        document.getElementById('dashboardPage').classList.remove('hidden');
+        renderUsers();
+    }
 
-            <!-- Header -->
-            <div class="dashboard-header">
-                <div class="dashboard-title">
-                    <h1>📊 Admin Dashboard</h1>
-                    <p>Welcome back, <span class="username" id="dashboardUsername"></span></p>
-                </div>
+    appState.currentPage = page;
+}
 
-                <div class="dashboard-actions">
-                    <button class="btn-secondary btn-back" onclick="goBack()">⬅ Back</button>
-                    <button class="btn-secondary btn-refresh" onclick="refreshDashboard()">🔄 Refresh</button>
-                </div>
-            </div>
+// =================== ADMIN LOGIN ===================
+function handleAdminLogin() {
+    const username = document.getElementById('adminUsername').value.trim();
+    const password = document.getElementById('adminPassword').value.trim();
+    const messageEl = document.getElementById('adminMessage');
 
-            <!-- Notifications -->
-            <div class="notification" id="successNotification"></div>
-            <div class="error-message" id="errorMessage"></div>
+    if (username === 'admin' && password === 'Admin@123') {
+        appState.isLoggedIn = true;
+        appState.adminUsername = username;
+        document.getElementById('successUsername').textContent = username;
 
-            <!-- Users Table -->
-            <div class="users-section">
-                <h2>Login Users (<span id="userCount">0</span>)</h2>
+        document.getElementById('adminUsername').value = '';
+        document.getElementById('adminPassword').value = '';
 
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Email</th>
-                                <th>Password</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody"></tbody>
-                    </table>
-                </div>
+        showPage('success');
+    } else {
+        messageEl.textContent = '❌ Invalid credentials';
+    }
+}
 
-                <div class="users-stats">
-                    <div class="stat">Total Users: <span class="stat-value" id="totalUsers">0</span></div>
-                    <div class="stat" style="color: #16a34a;">Active: <span class="stat-value" id="activeUsers">0</span></div>
-                    <div class="stat" style="color: #dc2626;">Inactive: <span class="stat-value" id="inactiveUsers">0</span></div>
-                </div>
+// ================= USER REGISTRATION =================
+function handleRegister() {
+    const firstName = document.getElementById('regFirstName').value.trim();
+    const lastName = document.getElementById('regLastName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value.trim();
+    const messageEl = document.getElementById('regMessage');
 
-            </div>
-        </div>
-    </div>
+    if (!firstName || !lastName || !email || !password) {
+        messageEl.textContent = '❌ All fields required';
+        return;
+    }
 
-    <script src="script.js"></script>
-</body>
-</html>
+    if (!email.includes('@')) {
+        messageEl.textContent = '❌ Invalid email';
+        return;
+    }
+
+    if (appState.users.some(user => user.email === email)) {
+        messageEl.textContent = '❌ Email already exists';
+        return;
+    }
+
+    const newUser = {
+        id: appState.nextUserId++,
+        firstName,
+        lastName,
+        email,
+        password: '****',
+        isActive: true
+    };
+
+    appState.users.unshift(newUser);
+
+    document.getElementById('regFirstName').value = '';
+    document.getElementById('regLastName').value = '';
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regPassword').value = '';
+
+    showPage('regSuccess');  // ⭐ ONLY SHOW SUCCESS PAGE
+}
+
+// ================= MANUAL BACK TO LOGIN BUTTON =================
+function goBackToLogin() {
+    showPage("portal");
+    switchTab("admin");
+}
+
+// ================= ADMIN LOGOUT =================
+function handleLogout() {
+    appState.isLoggedIn = false;
+    appState.adminUsername = '';
+    showPage("portal");
+    switchTab("admin");
+}
+
+// ================= DASHBOARD =================
+function goToDashboard() {
+    document.getElementById('dashboardUsername').textContent = appState.adminUsername;
+    showPage('dashboard');
+}
+
+function goBack() {
+showPage("portal");      // Show login page
+witchTab("admin");      // Switch to admin login tab
+}
+
+
+function refreshDashboard() {
+    const msg = document.getElementById('successNotification');
+    msg.textContent = '✓ Dashboard refreshed!';
+    msg.classList.add('show');
+    setTimeout(() => msg.classList.remove('show'), 3000);
+}
+
+// ================= DELETE USER =================
+function deleteUser(id) {
+    appState.users = appState.users.filter(u => u.id !== id);
+    renderUsers();
+}
+
+// ================= TOGGLE USER ACTIVE =================
+function toggleUserStatus(id) {
+    const user = appState.users.find(u => u.id === id);
+    if (user) {
+        user.isActive = !user.isActive;
+        renderUsers();
+    }
+}
+
+// ================= RENDER USERS TABLE =================
+function renderUsers() {
+    const tbody = document.getElementById('usersTableBody');
+
+    document.getElementById('userCount').textContent = appState.users.length;
+    document.getElementById('totalUsers').textContent = appState.users.length;
+    document.getElementById('activeUsers').textContent = appState.users.filter(u => u.isActive).length;
+    document.getElementById('inactiveUsers').textContent = appState.users.filter(u => !u.isActive).length;
+
+    tbody.innerHTML = appState.users.map((user, idx) => `
+        <tr>
+            <td>${idx + 1}</td>
+            <td>${user.firstName}</td>
+            <td>${user.lastName}</td>
+            <td>${user.email}</td>
+            <td>${user.password}</td>
+            <td>
+                <button class="toggle ${user.isActive ? 'active' : 'inactive'}"
+                        onclick="toggleUserStatus(${user.id})">
+                    <span class="toggle-slider"></span>
+                </button>
+            </td>
+            <td>
+                <button class="btn-delete" onclick="deleteUser(${user.id})">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ================= INIT =================
+window.addEventListener('DOMContentLoaded', () => {
+    showPage('portal');
+});
