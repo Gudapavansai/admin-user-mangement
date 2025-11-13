@@ -276,6 +276,15 @@ body {
     font-size: 0.9rem;
 }
 
+.btn-back {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-back:hover {
+    background: #4b5563;
+}
+
 .btn-refresh {
     background: #16a34a;
     color: white;
