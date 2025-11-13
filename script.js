@@ -58,7 +58,6 @@ function showPage(page) {
         document.getElementById('successPage').classList.remove('hidden');
     } else if (page === 'regSuccess') {
         document.getElementById('regSuccessPage').classList.remove('hidden');
-        // ❌ AUTO REDIRECT REMOVED (as per your request)
     } else if (page === 'dashboard') {
         document.getElementById('dashboardPage').classList.remove('hidden');
         renderUsers();
@@ -73,22 +72,25 @@ function handleAdminLogin() {
     const password = document.getElementById('adminPassword').value.trim();
     const messageEl = document.getElementById('adminMessage');
 
+    if (!username || !password) {
+        messageEl.textContent = '❌ All fields required';
+        return;
+    }
+
     if (username === 'admin' && password === 'Admin@123') {
         appState.isLoggedIn = true;
         appState.adminUsername = username;
         document.getElementById('successUsername').textContent = username;
-
         document.getElementById('adminUsername').value = '';
         document.getElementById('adminPassword').value = '';
-
         showPage('success');
     } else {
         messageEl.textContent = '❌ Invalid credentials';
     }
 }
 
-// ================= USER REGISTRATION =================
-function handleRegister() {
+// ================= USER LOGIN =================
+function handleUserLogin() {
     const firstName = document.getElementById('regFirstName').value.trim();
     const lastName = document.getElementById('regLastName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
@@ -126,16 +128,10 @@ function handleRegister() {
     document.getElementById('regEmail').value = '';
     document.getElementById('regPassword').value = '';
 
-    showPage('regSuccess');  // ⭐ ONLY SHOW SUCCESS PAGE
+    showPage('regSuccess');
 }
 
-// ================= MANUAL BACK TO LOGIN BUTTON =================
-function goBackToLogin() {
-    showPage("portal");
-    switchTab("admin");
-}
-
-// ================= ADMIN LOGOUT =================
+// ================= LOGOUT =================
 function handleLogout() {
     appState.isLoggedIn = false;
     appState.adminUsername = '';
@@ -150,10 +146,9 @@ function goToDashboard() {
 }
 
 function goBack() {
-showPage("portal");      // Show login page
-witchTab("admin");      // Switch to admin login tab
+    showPage("portal");
+    switchTab("admin");
 }
-
 
 function refreshDashboard() {
     const msg = document.getElementById('successNotification');
